@@ -1,0 +1,21 @@
+# Build artifacts
+*.o
+*.d
+*.su
+*.cyclo
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+objects.list
+
+# STM32CubeIDE auto-generated (regenerated on build)
+Debug/Core/
+Debug/Drivers/
+
+# IDE / compiler settings (machine-specific)
+.settings/language.settings.xml
+
+# Claude Code
+.claude/
