@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bno055_stm32.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,7 +43,7 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+I2C_HandleTypeDef hi2c1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -51,12 +51,16 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void MX_I2C1_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+int __io_putchar(int ch)
+{
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
 /* USER CODE END 0 */
 
 /**
@@ -90,7 +94,12 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  MX_I2C1_Init();
+  bno055_assignI2C(&hi2c1);
+  bno055_setup();
+  bno055_setOperationModeNDOF();
+  uint32_t lastLedTick = 0;
+  uint32_t lastImuTick = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -98,9 +107,22 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	HAL_Delay(500);
     /* USER CODE BEGIN 3 */
+    uint32_t now = HAL_GetTick();
+    if (now - lastLedTick >= 500) {
+      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+      lastLedTick = now;
+    }
+    if (now - lastImuTick >= 10) {
+      bno055_vector_t euler = bno055_getVectorEuler();
+      bno055_vector_t accel = bno055_getVectorAccelerometer();
+      bno055_vector_t gyro  = bno055_getVectorGyroscope();
+      printf("H:%.1f R:%.1f P:%.1f Ax:%.2f Ay:%.2f Az:%.2f Gx:%.2f Gy:%.2f Gz:%.2f\r\n",
+             euler.x, euler.y, euler.z,
+             accel.x, accel.y, accel.z,
+             gyro.x,  gyro.y,  gyro.z);
+      lastImuTick = now;
+    }
   }
   /* USER CODE END 3 */
 }
@@ -224,7 +246,22 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+static void MX_I2C1_Init(void)
+{
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
 /* USER CODE END 4 */
 
 /**
