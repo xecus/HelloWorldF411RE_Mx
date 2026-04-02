@@ -114,11 +114,16 @@ int main(void)
       lastLedTick = now;
     }
     if (now - lastImuTick >= 10) {
-      bno055_vector_t euler = bno055_getVectorEuler();
+      //bno055_vector_t euler = bno055_getVectorEuler();
       bno055_vector_t accel = bno055_getVectorAccelerometer();
       bno055_vector_t gyro  = bno055_getVectorGyroscope();
+      /*
       printf("H:%.1f R:%.1f P:%.1f Ax:%.2f Ay:%.2f Az:%.2f Gx:%.2f Gy:%.2f Gz:%.2f\r\n",
              euler.x, euler.y, euler.z,
+             accel.x, accel.y, accel.z,
+             gyro.x,  gyro.y,  gyro.z);
+      */
+      printf("Ax:%.2f Ay:%.2f Az:%.2f Gx:%.2f Gy:%.2f Gz:%.2f\r\n",
              accel.x, accel.y, accel.z,
              gyro.x,  gyro.y,  gyro.z);
       lastImuTick = now;
